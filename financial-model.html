@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Model | Investment Banking Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0f;
+            color: #d4d4d8;
+            font-size: 12px;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Goldman Sachs Dark Theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-tertiary: #18181f;
+            --border: #2a2a35;
+            --border-light: #3a3a45;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-gold: #d4a857;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 8px 4px 16px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+
+        .sidebar h1 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .sidebar .subtitle {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Accordion */
+        .accordion {
+            border: 1px solid var(--border);
+            margin-bottom: 6px;
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .accordion-header:hover {
+            background: #1f1f28;
+            color: var(--text-primary);
+        }
+
+        .accordion-content {
+            padding: 10px;
+            background: var(--bg-secondary);
+            display: none;
+            border-top: 1px solid var(--border);
+        }
+
+        .accordion-content.open {
+            display: block;
+        }
+
+        /* Input Controls */
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .input-value {
+            color: var(--accent-gold);
+            font-weight: 600;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            background: transparent;
+            height: 16px;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -4px;
+        }
+
+        input[type="number"],
+        select {
+            width: 70px;
+            padding: 4px 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 10px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            text-align: right;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        select {
+            width: 100%;
+            text-align: left;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+
+        /* KPI Strip - Goldman Style */
+        .kpi-strip {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .kpi-item {
+            flex: 1;
+            padding: 12px 16px;
+            border-right: 1px solid var(--border);
+        }
+
+        .kpi-item:last-child {
+            border-right: none;
+        }
+
+        .kpi-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .kpi-sub {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .positive {
+            color: var(--accent-green);
+        }
+
+        .negative {
+            color: var(--accent-red);
+        }
+
+        .gold {
+            color: var(--accent-gold);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+            background: var(--bg-primary);
+        }
+
+        /* Chart Cards */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .chart-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .chart-header {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-tertiary);
+        }
+
+        .chart-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-body {
+            padding: 12px;
+        }
+
+        .chart-area {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .bar {
+            width: 100%;
+            border-radius: 1px 1px 0 0;
+            transition: height 0.2s;
+            min-height: 1px;
+        }
+
+        .bar.revenue {
+            background: var(--accent-blue);
+        }
+
+        .bar.ebitda {
+            background: var(--accent-green);
+        }
+
+        .bar.projectcf {
+            background: var(--accent-green);
+        }
+
+        .bar-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        /* Tables - Goldman Style */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            padding: 8px 10px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        th:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background: var(--bg-tertiary);
+            z-index: 1;
+            min-width: 140px;
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        td {
+            padding: 6px 10px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        td:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background: var(--bg-secondary);
+            z-index: 1;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        tr:hover td:first-child {
+            background: var(--bg-tertiary);
+        }
+
+        .row-header {
+            font-weight: 600;
+            color: var(--text-primary);
+            background: rgba(212, 168, 87, 0.05);
+        }
+
+        .row-header td:first-child {
+            background: rgba(212, 168, 87, 0.08);
+        }
+
+        .row-sub td:first-child {
+            padding-left: 20px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .row-total {
+            background: var(--bg-tertiary);
+        }
+
+        .row-total td {
+            font-weight: 600;
+            color: var(--text-primary);
+            border-top: 2px solid var(--border);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+
+        .sensitivity-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 12px;
+        }
+
+        .sens-group {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sens-group:last-of-type {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .sens-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .sens-value {
+            font-weight: 700;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .sens-marks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .irr-display {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .irr-title {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .irr-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .irr-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .irr-box-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .irr-box-value {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-light);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="app"></div>
+
+    <script>
+        // ========== CALCULATION ENGINE ==========
+        const calcEngine = {
+            pmt: (rate, nper, pv) => {
+                if (rate === 0) return pv / nper;
+                return (rate * pv) / (1 - Math.pow(1 + rate, -nper));
+            },
+            generateDebtSchedule: (totalDebt, rate, years, type) => {
+                const schedule = [];
+                let balance = totalDebt;
+                const annualRate = rate / 100;
+                if (type === 'mortgage') {
+                    const pmt = calcEngine.pmt(annualRate, years, totalDebt);
+                    for (let y = 1; y <= years; y++) {
+                        const interest = balance * annualRate;
+                        const principal = pmt - interest;
+                        balance -= principal;
+                        schedule.push({ year: y, payment: pmt, interest, principal, balance: Math.max(0, balance) });
+                    }
+                } else {
+                    const principalPmt = totalDebt / years;
+                    for (let y = 1; y <= years; y++) {
+                        const interest = balance * annualRate;
+                        balance -= principalPmt;
+                        schedule.push({ year: y, payment: principalPmt + interest, interest, principal: principalPmt, balance: Math.max(0, balance) });
+                    }
+                }
+                return schedule;
+            },
+            calcIRR: (cashFlows, guess = 0.1) => {
+                const maxIter = 100, tol = 1e-7;
+                let rate = guess;
+                for (let i = 0; i < maxIter; i++) {
+                    let npv = 0, dnpv = 0;
+                    for (let t = 0; t < cashFlows.length; t++) {
+                        npv += cashFlows[t] / Math.pow(1 + rate, t);
+                        dnpv -= t * cashFlows[t] / Math.pow(1 + rate, t + 1);
+                    }
+                    if (Math.abs(npv) < tol) return rate;
+                    if (Math.abs(dnpv) < 1e-10) break;
+                    const newRate = rate - npv / dnpv;
+                    if (Math.abs(newRate - rate) < tol) return newRate;
+                    rate = Math.max(-0.99, Math.min(10, newRate));
+                }
+                return rate;
+            },
+            calcNPV: (cashFlows, discountRate) => cashFlows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + discountRate, t), 0)
+        };
+
+        // ========== STATE ==========
+        let state = {
+            startYear: 2024,
+            duration: 10,
+            capex: 10000000,
+            initialRevenue: 3000000,
+            initialOpex: 1500000,
+            revenueGrowth: 3,
+            opexGrowth: 2,
+            debtShare: 70,
+            interestRate: 6,
+            loanFee: 1.5,
+            wacc: 8,
+            taxRate: 25,
+            amortType: 'mortgage',
+            capexAdj: 0,
+            revenueAdj: 0,
+            activeTab: 'dashboard',
+            accordions: { timing: true, operations: true, growth: false, financing: false, tax: false }
+        };
+
+        // ========== CALCULATE MODEL ==========
+        function calculateModel() {
+            const capex = state.capex * (1 + state.capexAdj / 100);
+            const initialRevenue = state.initialRevenue * (1 + state.revenueAdj / 100);
+            const totalDebt = capex * (state.debtShare / 100);
+            const totalEquity = capex - totalDebt;
+            const loanFeeAmount = totalDebt * (state.loanFee / 100);
+            const equityInjection = totalEquity + loanFeeAmount;
+            const depreciation = capex / state.duration;
+            const debtSchedule = calcEngine.generateDebtSchedule(totalDebt, state.interestRate, state.duration, state.amortType);
+            const years = [];
+            let projectCFs = [-capex];
+            let equityCFs = [-equityInjection];
+            let totalEBITDA = 0;
+
+            for (let y = 0; y < state.duration; y++) {
+                const year = state.startYear + y;
+                const revenue = initialRevenue * Math.pow(1 + state.revenueGrowth / 100, y);
+                const opex = state.initialOpex * Math.pow(1 + state.opexGrowth / 100, y);
+                const ebitda = revenue - opex;
+                const ebit = ebitda - depreciation;
+                const interest = debtSchedule[y] ? debtSchedule[y].interest : 0;
+                const ebt = ebit - interest;
+                const tax = Math.max(0, ebt * (state.taxRate / 100));
+                const netIncome = ebt - tax;
+                const projectCF = ebitda - tax;
+                const debtService = debtSchedule[y] ? debtSchedule[y].payment : 0;
+                const equityCF = projectCF - debtService;
+                totalEBITDA += ebitda;
+                projectCFs.push(projectCF);
+                equityCFs.push(equityCF);
+                years.push({ year, revenue, opex, ebitda, depreciation, ebit, interest, ebt, tax, netIncome, projectCF, equityCF, debtService });
+            }
+
+            const pirr = calcEngine.calcIRR(projectCFs) * 100;
+            const eirr = calcEngine.calcIRR(equityCFs) * 100;
+            const npv = calcEngine.calcNPV(projectCFs, state.wacc / 100);
+            const roi = equityCFs.reduce((a, b) => a + b, 0) / equityInjection;
+            const avgEbitdaMargin = (totalEBITDA / state.duration) / (initialRevenue * Math.pow(1 + state.revenueGrowth / 100, state.duration / 2)) * 100;
+            const ebitdaCapexRatio = (totalEBITDA / state.duration) / capex * 100;
+
+            return { years, pirr, eirr, npv, roi, avgEbitdaMargin, ebitdaCapexRatio, capex, equityInjection };
+        }
+
+        // ========== FORMATTERS ==========
+        const formatCurrency = (val) => {
+            if (typeof val !== 'number' || isNaN(val)) return '-';
+            const abs = Math.abs(val);
+            if (abs >= 1e6) return `${val < 0 ? '-' : ''}$${(abs / 1e6).toFixed(2)}M`;
+            if (abs >= 1e3) return `${val < 0 ? '-' : ''}$${(abs / 1e3).toFixed(0)}K`;
+            return `${val < 0 ? '-' : ''}$${abs.toFixed(0)}`;
+        };
+        const formatPercent = (val) => (typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? 'N/A' : `${val.toFixed(1)}%`;
+        const formatNumber = (val) => typeof val === 'number' ? val.toLocaleString() : val;
+
+        // ========== RENDER ==========
+        function render() {
+            const model = calculateModel();
+            const maxRevenue = Math.max(...model.years.map(y => y.revenue));
+            const maxCF = Math.max(...model.years.map(y => Math.max(y.projectCF, y.debtService || 0, y.tax || 0)));
+
+            document.getElementById('app').innerHTML = `
+                <!-- Left Sidebar -->
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <h1>Financial Model</h1>
+                        <div class="subtitle">Investment Banking Dashboard</div>
+                    </div>
+                    
+                    ${renderAccordion('timing', 'Timing', `
+                        ${renderSlider('startYear', 'Start Year', state.startYear, 2020, 2035, 1, '')}
+                        ${renderSlider('duration', 'Duration (Years)', state.duration, 1, 30, 1, '')}
+                    `)}
+                    
+                    ${renderAccordion('operations', 'Operations', `
+                        ${renderSlider('capex', 'CAPEX', state.capex, 100000, 100000000, 100000, '', '$')}
+                        ${renderSlider('initialRevenue', 'Initial Revenue', state.initialRevenue, 100000, 50000000, 100000, '', '$')}
+                        ${renderSlider('initialOpex', 'Initial OPEX', state.initialOpex, 50000, 30000000, 50000, '', '$')}
+                    `)}
+                    
+                    ${renderAccordion('growth', 'Growth Rates', `
+                        ${renderSlider('revenueGrowth', 'Revenue Growth', state.revenueGrowth, -5, 20, 0.5, '%')}
+                        ${renderSlider('opexGrowth', 'OPEX Growth', state.opexGrowth, -5, 15, 0.5, '%')}
+                    `)}
+                    
+                    ${renderAccordion('financing', 'Financing', `
+                        ${renderSlider('debtShare', 'Debt / Total', state.debtShare, 0, 95, 1, '%')}
+                        ${renderSlider('interestRate', 'Interest Rate', state.interestRate, 0, 20, 0.25, '%')}
+                        ${renderSlider('loanFee', 'Arrangement Fee', state.loanFee, 0, 5, 0.25, '%')}
+                        ${renderSlider('wacc', 'WACC', state.wacc, 1, 25, 0.5, '%')}
+                        <div class="input-group">
+                            <div class="input-label"><span>Amortization</span></div>
+                            <select onchange="updateState('amortType', this.value)">
+                                <option value="mortgage" ${state.amortType === 'mortgage' ? 'selected' : ''}>Mortgage (Annuity)</option>
+                                <option value="constant" ${state.amortType === 'constant' ? 'selected' : ''}>Linear (Constant Principal)</option>
+                            </select>
+                        </div>
+                    `)}
+                    
+                    ${renderAccordion('tax', 'Tax', `
+                        ${renderSlider('taxRate', 'Corporate Tax', state.taxRate, 0, 50, 1, '%')}
+                    `)}
+                </div>
+                
+                <!-- Main Content -->
+                <div class="main">
+                    <!-- KPI Strip -->
+                    <div class="kpi-strip">
+                        <div class="kpi-item">
+                            <div class="kpi-label">Project IRR</div>
+                            <div class="kpi-value ${model.pirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.pirr)}</div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-label">Equity IRR</div>
+                            <div class="kpi-value ${model.eirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.eirr)}</div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-label">Equity Multiple</div>
+                            <div class="kpi-value ${model.roi >= 1 ? 'positive' : 'negative'}">${model.roi.toFixed(2)}x</div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-label">EBITDA Margin</div>
+                            <div class="kpi-value gold">${formatPercent(model.avgEbitdaMargin)}</div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-label">EBITDA / CAPEX</div>
+                            <div class="kpi-value gold">${formatPercent(model.ebitdaCapexRatio)}</div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-label">NPV @ ${state.wacc}%</div>
+                            <div class="kpi-value ${model.npv >= 0 ? 'positive' : 'negative'}">${formatCurrency(model.npv)}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button class="tab ${state.activeTab === 'dashboard' ? 'active' : ''}" onclick="updateState('activeTab', 'dashboard')">Dashboard</button>
+                        <button class="tab ${state.activeTab === 'pnl' ? 'active' : ''}" onclick="updateState('activeTab', 'pnl')">P&L Statement</button>
+                        <button class="tab ${state.activeTab === 'cashflow' ? 'active' : ''}" onclick="updateState('activeTab', 'cashflow')">Cash Flow</button>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="content">
+                        ${state.activeTab === 'dashboard' ? renderDashboard(model, maxRevenue, maxCF) : ''}
+                        ${state.activeTab === 'pnl' ? renderPnL(model) : ''}
+                        ${state.activeTab === 'cashflow' ? renderCashFlow(model) : ''}
+                    </div>
+                </div>
+                
+                <!-- Right Panel -->
+                <div class="right-panel">
+                    <div class="panel-header">Sensitivity Analysis</div>
+                    <div class="sensitivity-card">
+                        <div class="sens-group">
+                            <div class="sens-label">
+                                <span>CAPEX Adjustment</span>
+                                <span class="sens-value ${state.capexAdj >= 0 ? 'positive' : 'negative'}">${state.capexAdj >= 0 ? '+' : ''}${state.capexAdj}%</span>
+                            </div>
+                            <input type="range" min="-50" max="50" step="5" value="${state.capexAdj}" oninput="updateState('capexAdj', parseInt(this.value))" style="width:100%">
+                            <div class="sens-marks"><span>-50%</span><span>0</span><span>+50%</span></div>
+                        </div>
+                        <div class="sens-group">
+                            <div class="sens-label">
+                                <span>Revenue Adjustment</span>
+                                <span class="sens-value ${state.revenueAdj >= 0 ? 'positive' : 'negative'}">${state.revenueAdj >= 0 ? '+' : ''}${state.revenueAdj}%</span>
+                            </div>
+                            <input type="range" min="-50" max="50" step="5" value="${state.revenueAdj}" oninput="updateState('revenueAdj', parseInt(this.value))" style="width:100%">
+                            <div class="sens-marks"><span>-50%</span><span>0</span><span>+50%</span></div>
+                        </div>
+                        <div class="irr-display">
+                            <div class="irr-title">Live Returns</div>
+                            <div class="irr-grid">
+                                <div class="irr-box">
+                                    <div class="irr-box-label">Project IRR</div>
+                                    <div class="irr-box-value ${model.pirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.pirr)}</div>
+                                </div>
+                                <div class="irr-box">
+                                    <div class="irr-box-label">Equity IRR</div>
+                                    <div class="irr-box-value ${model.eirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.eirr)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAccordion(id, title, content) {
+            const isOpen = state.accordions[id];
+            return `
+                <div class="accordion">
+                    <button class="accordion-header" onclick="toggleAccordion('${id}')">${title} <span style="font-size:8px">${isOpen ? '▲' : '▼'}</span></button>
+                    <div class="accordion-content ${isOpen ? 'open' : ''}">${content}</div>
+                </div>
+            `;
+        }
+
+        function renderSlider(key, label, value, min, max, step, unit, prefix = '') {
+            const displayValue = prefix ? formatCurrency(value).replace('$', prefix) : `${formatNumber(value)}${unit}`;
+            return `
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>${label}</span>
+                        <span class="input-value">${displayValue}</span>
+                    </div>
+                    <div class="input-row">
+                        <input type="range" min="${min}" max="${max}" step="${step}" value="${value}" oninput="updateState('${key}', parseFloat(this.value))">
+                        <input type="number" value="${value}" step="${step}" onchange="updateState('${key}', parseFloat(this.value) || ${min})">
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard(model, maxRevenue, maxCF) {
+            return `
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <div class="chart-header"><div class="chart-title">Revenue & EBITDA</div></div>
+                        <div class="chart-body">
+                            <div class="chart-area">
+                                ${model.years.map(y => `
+                                    <div class="bar-group">
+                                        <div class="bar revenue" style="height:${Math.max(2, (y.revenue / maxRevenue) * 160)}px" title="Revenue: ${formatCurrency(y.revenue)}"></div>
+                                        <div class="bar-label">${String(y.year).slice(-2)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="chart-legend">
+                                <div class="legend-item"><div class="legend-dot" style="background:var(--accent-blue)"></div>Revenue</div>
+                                <div class="legend-item"><div class="legend-dot" style="background:var(--accent-green)"></div>EBITDA</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header"><div class="chart-title">Project Cash Flow</div></div>
+                        <div class="chart-body">
+                            <div class="chart-area">
+                                ${model.years.map(y => `
+                                    <div class="bar-group">
+                                        <div class="bar projectcf" style="height:${Math.max(2, (y.projectCF / maxCF) * 160)}px" title="CF: ${formatCurrency(y.projectCF)}"></div>
+                                        <div class="bar-label">${String(y.year).slice(-2)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="chart-legend">
+                                <div class="legend-item"><div class="legend-dot" style="background:var(--accent-green)"></div>Project CF</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPnL(model) {
+            const rows = [
+                { key: 'revenue', label: 'Revenue', isHeader: true },
+                { key: 'opex', label: 'Operating Expenses', isSub: true },
+                { key: 'ebitda', label: 'EBITDA', isHeader: true },
+                { key: 'depreciation', label: 'Depreciation', isSub: true },
+                { key: 'ebit', label: 'EBIT', isHeader: true },
+                { key: 'interest', label: 'Interest Expense', isSub: true },
+                { key: 'ebt', label: 'EBT', isHeader: true },
+                { key: 'tax', label: 'Income Tax', isSub: true },
+                { key: 'netIncome', label: 'Net Income', isTotal: true }
+            ];
+            return `
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>P&L ($000s)</th>${model.years.map(y => `<th>${y.year}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${rows.map(row => `
+                                <tr class="${row.isHeader ? 'row-header' : row.isTotal ? 'row-total' : row.isSub ? 'row-sub' : ''}">
+                                    <td>${row.isSub ? '(-) ' : ''}${row.label}</td>
+                                    ${model.years.map(y => {
+                const val = y[row.key];
+                const display = (Math.abs(val) / 1000).toFixed(0);
+                return `<td class="${val < 0 ? 'negative' : ''}">${display}</td>`;
+            }).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderCashFlow(model) {
+            return `
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Cash Flow ($000s)</th><th>Yr 0</th>${model.years.map(y => `<th>${y.year}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            <tr class="row-header">
+                                <td>Project Cash Flow</td>
+                                <td class="negative">(${(model.capex / 1000).toFixed(0)})</td>
+                                ${model.years.map(y => `<td class="positive">${(y.projectCF / 1000).toFixed(0)}</td>`).join('')}
+                            </tr>
+                            <tr class="row-sub">
+                                <td>(-) Debt Service</td>
+                                <td>-</td>
+                                ${model.years.map(y => `<td>${(y.debtService / 1000).toFixed(0)}</td>`).join('')}
+                            </tr>
+                            <tr class="row-total">
+                                <td>Equity Cash Flow</td>
+                                <td class="negative">(${(model.equityInjection / 1000).toFixed(0)})</td>
+                                ${model.years.map(y => `<td class="${y.equityCF >= 0 ? 'positive' : 'negative'}">${y.equityCF >= 0 ? '' : '('}${(Math.abs(y.equityCF) / 1000).toFixed(0)}${y.equityCF >= 0 ? '' : ')'}</td>`).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // ========== STATE MANAGEMENT ==========
+        function updateState(key, value) {
+            state[key] = value;
+            render();
+        }
+
+        function toggleAccordion(id) {
+            state.accordions[id] = !state.accordions[id];
+            render();
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+
+</html>
