@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Model | Investment Banking Style</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -25,7 +28,6 @@
             min-height: 100vh;
         }
 
-        /* Goldman Sachs Dark Theme */
         :root {
             --bg-primary: #0a0a0f;
             --bg-secondary: #111118;
@@ -39,9 +41,10 @@
             --accent-green: #22c55e;
             --accent-red: #ef4444;
             --accent-gold: #d4a857;
+            --accent-purple: #a855f7;
+            --accent-cyan: #06b6d4;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: var(--bg-secondary);
@@ -70,7 +73,6 @@
             margin-top: 2px;
         }
 
-        /* Accordion */
         .accordion {
             border: 1px solid var(--border);
             margin-bottom: 6px;
@@ -108,7 +110,6 @@
             display: block;
         }
 
-        /* Input Controls */
         .input-group {
             margin-bottom: 12px;
         }
@@ -159,6 +160,7 @@
         }
 
         input[type="number"],
+        input[type="text"],
         select {
             width: 70px;
             padding: 4px 6px;
@@ -170,7 +172,14 @@
             text-align: right;
         }
 
+        input[type="text"] {
+            width: 100%;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+        }
+
         input[type="number"]:focus,
+        input[type="text"]:focus,
         select:focus {
             outline: none;
             border-color: var(--accent-gold);
@@ -181,7 +190,16 @@
             text-align: left;
         }
 
-        /* Main Content */
+        .validation-error {
+            color: var(--accent-red);
+            font-size: 9px;
+            margin-top: 4px;
+            padding: 4px 6px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 2px;
+        }
+
         .main {
             flex: 1;
             display: flex;
@@ -190,16 +208,17 @@
             background: var(--bg-primary);
         }
 
-        /* KPI Strip - Goldman Style */
         .kpi-strip {
             display: flex;
             border-bottom: 1px solid var(--border);
             background: var(--bg-secondary);
+            flex-wrap: wrap;
         }
 
         .kpi-item {
             flex: 1;
-            padding: 12px 16px;
+            min-width: 120px;
+            padding: 10px 14px;
             border-right: 1px solid var(--border);
         }
 
@@ -208,21 +227,21 @@
         }
 
         .kpi-label {
-            font-size: 9px;
+            font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-muted);
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         .kpi-value {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             font-family: 'SF Mono', 'Consolas', monospace;
         }
 
         .kpi-sub {
-            font-size: 9px;
+            font-size: 8px;
             color: var(--text-muted);
             margin-top: 2px;
         }
@@ -239,7 +258,10 @@
             color: var(--accent-gold);
         }
 
-        /* Tabs */
+        .warning {
+            color: var(--accent-red);
+        }
+
         .tabs {
             display: flex;
             background: var(--bg-secondary);
@@ -269,7 +291,6 @@
             border-bottom-color: var(--accent-gold);
         }
 
-        /* Content Area */
         .content {
             flex: 1;
             overflow: auto;
@@ -277,11 +298,11 @@
             background: var(--bg-primary);
         }
 
-        /* Chart Cards */
         .chart-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+            margin-bottom: 16px;
         }
 
         .chart-card {
@@ -293,6 +314,9 @@
             padding: 10px 12px;
             border-bottom: 1px solid var(--border);
             background: var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .chart-title {
@@ -303,73 +327,17 @@
             letter-spacing: 0.5px;
         }
 
-        .chart-body {
-            padding: 12px;
-        }
-
-        .chart-area {
-            height: 200px;
-            display: flex;
-            align-items: flex-end;
-            gap: 2px;
-        }
-
-        .bar-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-        }
-
-        .bar {
-            width: 100%;
-            border-radius: 1px 1px 0 0;
-            transition: height 0.2s;
-            min-height: 1px;
-        }
-
-        .bar.revenue {
-            background: var(--accent-blue);
-        }
-
-        .bar.ebitda {
-            background: var(--accent-green);
-        }
-
-        .bar.projectcf {
-            background: var(--accent-green);
-        }
-
-        .bar-label {
-            font-size: 8px;
-            color: var(--text-muted);
+        .chart-value {
+            font-size: 12px;
+            font-weight: 700;
             font-family: 'SF Mono', 'Consolas', monospace;
         }
 
-        .chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            padding-top: 8px;
-            border-top: 1px solid var(--border);
-            margin-top: 8px;
+        .chart-body {
+            padding: 12px;
+            height: 200px;
         }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 9px;
-            color: var(--text-muted);
-        }
-
-        .legend-dot {
-            width: 8px;
-            height: 8px;
-        }
-
-        /* Tables - Goldman Style */
         .table-container {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -403,7 +371,7 @@
             left: 0;
             background: var(--bg-tertiary);
             z-index: 1;
-            min-width: 140px;
+            min-width: 160px;
         }
 
         th:last-child {
@@ -465,7 +433,32 @@
             border-top: 2px solid var(--border);
         }
 
-        /* Right Panel */
+        .row-section {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .row-section td:first-child {
+            font-weight: 600;
+            color: var(--accent-blue);
+            font-style: italic;
+        }
+
+        .row-dcf {
+            background: rgba(212, 168, 87, 0.1);
+        }
+
+        .row-dcf td {
+            color: var(--accent-gold);
+        }
+
+        .row-dcr {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .row-dcr td {
+            color: var(--accent-purple);
+        }
+
         .right-panel {
             width: 260px;
             background: var(--bg-secondary);
@@ -562,12 +555,36 @@
         }
 
         .irr-box-value {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             font-family: 'SF Mono', 'Consolas', monospace;
         }
 
-        /* Scrollbar */
+        .export-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .export-btn:hover {
+            background: #e5b868;
+        }
+
+        .export-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+        }
+
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -637,16 +654,21 @@
                 }
                 return rate;
             },
-            calcNPV: (cashFlows, discountRate) => cashFlows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + discountRate, t), 0)
+            calcNPV: (cashFlows, discountRate) => cashFlows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + discountRate, t), 0),
+            discountCF: (cf, rate, period) => cf / Math.pow(1 + rate, period)
         };
 
         // ========== STATE ==========
         let state = {
+            projectName: 'Project Alpha',
             startYear: 2024,
             duration: 10,
+            loanDuration: 10,
+            depreciationDuration: 10,
             capex: 10000000,
             initialRevenue: 3000000,
             initialOpex: 1500000,
+            terminationValue: 5000000,
             revenueGrowth: 3,
             opexGrowth: 2,
             debtShare: 70,
@@ -658,51 +680,132 @@
             capexAdj: 0,
             revenueAdj: 0,
             activeTab: 'dashboard',
-            accordions: { timing: true, operations: true, growth: false, financing: false, tax: false }
+            accordions: { project: true, timing: true, operations: true, growth: false, financing: false, tax: false },
+            validationErrors: []
         };
+
+        let charts = {};
+
+        // ========== VALIDATION ==========
+        function validateInputs() {
+            const errors = [];
+            if (state.loanDuration > state.duration) {
+                errors.push('Loan Duration cannot exceed Project Duration');
+            }
+            if (state.depreciationDuration > state.duration) {
+                errors.push('Depreciation Duration cannot exceed Project Duration');
+            }
+            state.validationErrors = errors;
+            return errors.length === 0;
+        }
 
         // ========== CALCULATE MODEL ==========
         function calculateModel() {
+            if (!validateInputs()) return null;
+
             const capex = state.capex * (1 + state.capexAdj / 100);
-            const initialRevenue = state.initialRevenue * (1 + state.revenueAdj / 100);
+            const baseRevenue = state.initialRevenue * (1 + state.revenueAdj / 100);
             const totalDebt = capex * (state.debtShare / 100);
             const totalEquity = capex - totalDebt;
             const loanFeeAmount = totalDebt * (state.loanFee / 100);
             const equityInjection = totalEquity + loanFeeAmount;
-            const depreciation = capex / state.duration;
-            const debtSchedule = calcEngine.generateDebtSchedule(totalDebt, state.interestRate, state.duration, state.amortType);
+            const depreciation = capex / state.depreciationDuration;
+            const debtSchedule = calcEngine.generateDebtSchedule(totalDebt, state.interestRate, state.loanDuration, state.amortType);
+            const discountRate = state.wacc / 100;
+
             const years = [];
             let projectCFs = [-capex];
             let equityCFs = [-equityInjection];
             let totalEBITDA = 0;
+            let minDCR = Infinity;
+            let dcrValues = [];
+
+            // Year 0 data
+            years.push({
+                year: state.startYear - 1,
+                isYear0: true,
+                revenue: 0, opex: 0, ebitda: 0, depreciation: 0, ebit: 0,
+                interest: 0, ebt: 0, tax: 0, netIncome: 0,
+                cfBeforeFinancing: -capex,
+                loanFeeExpense: -loanFeeAmount,
+                interestExpense: 0,
+                debtRepayment: 0,
+                projectCF: -capex,
+                equityCF: -equityInjection,
+                fcf: -capex,
+                dcf: -capex,
+                dcr: null,
+                debtService: 0,
+                cfads: 0
+            });
 
             for (let y = 0; y < state.duration; y++) {
                 const year = state.startYear + y;
-                const revenue = initialRevenue * Math.pow(1 + state.revenueGrowth / 100, y);
+                const isLastYear = y === state.duration - 1;
+
+                // Revenue with termination value in final year
+                let revenue = baseRevenue * Math.pow(1 + state.revenueGrowth / 100, y);
+                if (isLastYear) {
+                    revenue += state.terminationValue;
+                }
+
                 const opex = state.initialOpex * Math.pow(1 + state.opexGrowth / 100, y);
                 const ebitda = revenue - opex;
-                const ebit = ebitda - depreciation;
-                const interest = debtSchedule[y] ? debtSchedule[y].interest : 0;
+                const depExp = y < state.depreciationDuration ? depreciation : 0;
+                const ebit = ebitda - depExp;
+                const interest = y < state.loanDuration && debtSchedule[y] ? debtSchedule[y].interest : 0;
                 const ebt = ebit - interest;
                 const tax = Math.max(0, ebt * (state.taxRate / 100));
                 const netIncome = ebt - tax;
-                const projectCF = ebitda - tax;
-                const debtService = debtSchedule[y] ? debtSchedule[y].payment : 0;
-                const equityCF = projectCF - debtService;
+
+                const cfBeforeFinancing = ebitda - tax;
+                const loanFeeExpense = 0;
+                const interestExpense = -interest;
+                const principal = y < state.loanDuration && debtSchedule[y] ? debtSchedule[y].principal : 0;
+                const debtRepayment = -principal;
+
+                const projectCF = cfBeforeFinancing;
+                const debtService = interest + principal;
+                const equityCF = cfBeforeFinancing - debtService;
+
+                // DCR Calculation: CFADS / Debt Service
+                // CFADS = EBITDA - Cash Taxes (simplified)
+                const cfads = ebitda - tax;
+                let dcr = null;
+                if (debtService > 0) {
+                    dcr = cfads / debtService;
+                    dcrValues.push(dcr);
+                    if (dcr < minDCR) minDCR = dcr;
+                }
+
+                const fcf = equityCF;
+                const dcf = calcEngine.discountCF(fcf, discountRate, y + 1);
+
                 totalEBITDA += ebitda;
                 projectCFs.push(projectCF);
                 equityCFs.push(equityCF);
-                years.push({ year, revenue, opex, ebitda, depreciation, ebit, interest, ebt, tax, netIncome, projectCF, equityCF, debtService });
+
+                years.push({
+                    year, isYear0: false, isLastYear,
+                    revenue, opex, ebitda, depreciation: depExp, ebit, interest, ebt, tax, netIncome,
+                    cfBeforeFinancing, loanFeeExpense, interestExpense, debtRepayment,
+                    projectCF, equityCF, fcf, dcf, dcr, debtService, cfads
+                });
             }
 
             const pirr = calcEngine.calcIRR(projectCFs) * 100;
             const eirr = calcEngine.calcIRR(equityCFs) * 100;
             const npv = calcEngine.calcNPV(projectCFs, state.wacc / 100);
             const roi = equityCFs.reduce((a, b) => a + b, 0) / equityInjection;
-            const avgEbitdaMargin = (totalEBITDA / state.duration) / (initialRevenue * Math.pow(1 + state.revenueGrowth / 100, state.duration / 2)) * 100;
+            const avgEbitdaMargin = (totalEBITDA / state.duration) / (baseRevenue * Math.pow(1 + state.revenueGrowth / 100, state.duration / 2)) * 100;
             const ebitdaCapexRatio = (totalEBITDA / state.duration) / capex * 100;
 
-            return { years, pirr, eirr, npv, roi, avgEbitdaMargin, ebitdaCapexRatio, capex, equityInjection };
+            return {
+                years, pirr, eirr, npv, roi, avgEbitdaMargin, ebitdaCapexRatio,
+                capex, equityInjection, loanFeeAmount, totalDebt,
+                minDCR: minDCR === Infinity ? null : minDCR,
+                avgDCR: dcrValues.length > 0 ? dcrValues.reduce((a, b) => a + b, 0) / dcrValues.length : null
+            };
         }
 
         // ========== FORMATTERS ==========
@@ -715,30 +818,379 @@
         };
         const formatPercent = (val) => (typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? 'N/A' : `${val.toFixed(1)}%`;
         const formatNumber = (val) => typeof val === 'number' ? val.toLocaleString() : val;
+        const formatThousands = (val) => {
+            if (typeof val !== 'number' || isNaN(val)) return '-';
+            const v = val / 1000;
+            if (val < 0) return `(${Math.abs(v).toFixed(0)})`;
+            return v.toFixed(0);
+        };
+        const formatDCR = (val) => {
+            if (val === null || typeof val !== 'number' || isNaN(val)) return '-';
+            return val.toFixed(2) + 'x';
+        };
+
+        // ========== PDF EXPORT (Multi-Page Goldman Sachs Style) ==========
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const model = calculateModel();
+            if (!model) { alert('Cannot export: fix validation errors first'); return; }
+
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            const pageW = pdf.internal.pageSize.getWidth();
+            const pageH = pdf.internal.pageSize.getHeight();
+            const margin = 15;
+            const contentW = pageW - margin * 2;
+
+            // Helper: Add page header
+            function addHeader(title) {
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, pageW, pageH, 'F');
+                pdf.setDrawColor(200, 200, 200);
+                pdf.line(margin, 18, pageW - margin, 18);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(16);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(state.projectName || 'Financial Model', margin, 12);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(10);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text(title, pageW - margin - pdf.getTextWidth(title), 12);
+                pdf.setFontSize(8);
+                pdf.text(new Date().toLocaleDateString(), pageW - margin - 20, 16);
+            }
+
+            // Helper: Draw table
+            function drawTable(headers, rows, startY, colWidths) {
+                let y = startY;
+                const rowH = 6;
+                const cellPad = 2;
+
+                // Header row
+                pdf.setFillColor(245, 245, 245);
+                pdf.rect(margin, y, contentW, rowH + 2, 'F');
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(7);
+                pdf.setTextColor(50, 50, 50);
+                let x = margin;
+                headers.forEach((h, i) => {
+                    pdf.text(h, x + cellPad, y + rowH - 1);
+                    x += colWidths[i];
+                });
+                y += rowH + 2;
+
+                // Data rows
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7);
+                rows.forEach((row, ri) => {
+                    if (row.isHeader) {
+                        pdf.setFillColor(250, 250, 250);
+                        pdf.rect(margin, y, contentW, rowH, 'F');
+                        pdf.setFont('helvetica', 'bold');
+                    } else {
+                        pdf.setFont('helvetica', 'normal');
+                    }
+                    pdf.setDrawColor(230, 230, 230);
+                    pdf.line(margin, y + rowH, pageW - margin, y + rowH);
+                    x = margin;
+                    row.cells.forEach((cell, ci) => {
+                        const isNeg = String(cell).includes('(');
+                        pdf.setTextColor(isNeg ? 180 : 0, isNeg ? 50 : 0, isNeg ? 50 : 0);
+                        const align = ci === 0 ? 'left' : 'right';
+                        const tx = align === 'right' ? x + colWidths[ci] - cellPad : x + cellPad;
+                        pdf.text(String(cell), tx, y + rowH - 1.5, { align });
+                        x += colWidths[ci];
+                    });
+                    y += rowH;
+                });
+                return y;
+            }
+
+            // PAGE 1: Dashboard & KPIs
+            addHeader('Executive Summary');
+            let y = 25;
+
+            // KPIs section
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('Key Performance Indicators', margin, y);
+            y += 8;
+
+            const kpis = [
+                ['Project IRR', formatPercent(model.pirr)],
+                ['Equity IRR', formatPercent(model.eirr)],
+                ['Equity Multiple', model.roi.toFixed(2) + 'x'],
+                ['NPV @ ' + state.wacc + '%', formatCurrency(model.npv)],
+                ['Min DCR', formatDCR(model.minDCR)],
+                ['Avg DCR', formatDCR(model.avgDCR)]
+            ];
+
+            const kpiW = contentW / 6;
+            pdf.setFontSize(8);
+            kpis.forEach((kpi, i) => {
+                const kx = margin + i * kpiW;
+                pdf.setFillColor(248, 248, 248);
+                pdf.rect(kx, y, kpiW - 2, 18, 'F');
+                pdf.setDrawColor(220, 220, 220);
+                pdf.rect(kx, y, kpiW - 2, 18, 'S');
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(100, 100, 100);
+                pdf.text(kpi[0], kx + 3, y + 6);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(0, 100, 50);
+                pdf.setFontSize(12);
+                pdf.text(kpi[1], kx + 3, y + 14);
+                pdf.setFontSize(8);
+            });
+            y += 28;
+
+            // Summary metrics
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('Project Parameters', margin, y);
+            y += 6;
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(50, 50, 50);
+            const params = [
+                `CAPEX: ${formatCurrency(model.capex)}`,
+                `Debt: ${formatCurrency(model.totalDebt)} (${state.debtShare}%)`,
+                `Duration: ${state.duration} years`,
+                `Interest: ${state.interestRate}%`,
+                `WACC: ${state.wacc}%`,
+                `Termination: ${formatCurrency(state.terminationValue)}`
+            ];
+            params.forEach((p, i) => { pdf.text(p, margin + (i % 3) * 90, y + Math.floor(i / 3) * 5); });
+
+            // PAGE 2: P&L Statement
+            pdf.addPage();
+            addHeader('Profit & Loss Statement');
+            y = 25;
+
+            const opYears = model.years.filter(yr => !yr.isYear0);
+            const pnlHeaders = ['P&L ($000s)', ...opYears.map(yr => String(yr.year))];
+            const colW = contentW / pnlHeaders.length;
+            const pnlWidths = pnlHeaders.map(() => colW);
+
+            const pnlRows = [
+                { cells: ['Revenue', ...opYears.map(yr => formatThousands(yr.revenue))], isHeader: true },
+                { cells: ['(-) OPEX', ...opYears.map(yr => formatThousands(yr.opex))] },
+                { cells: ['EBITDA', ...opYears.map(yr => formatThousands(yr.ebitda))], isHeader: true },
+                { cells: ['(-) Depreciation', ...opYears.map(yr => formatThousands(yr.depreciation))] },
+                { cells: ['EBIT', ...opYears.map(yr => formatThousands(yr.ebit))], isHeader: true },
+                { cells: ['(-) Interest', ...opYears.map(yr => formatThousands(yr.interest))] },
+                { cells: ['EBT', ...opYears.map(yr => formatThousands(yr.ebt))], isHeader: true },
+                { cells: ['(-) Tax', ...opYears.map(yr => formatThousands(yr.tax))] },
+                { cells: ['Net Income', ...opYears.map(yr => formatThousands(yr.netIncome))], isHeader: true }
+            ];
+            drawTable(pnlHeaders, pnlRows, y, pnlWidths);
+
+            // PAGE 3: Cash Flow Statement
+            pdf.addPage();
+            addHeader('Cash Flow Statement');
+            y = 25;
+
+            const cfHeaders = ['Cash Flow ($000s)', 'Yr 0', ...opYears.map(yr => String(yr.year))];
+            const cfWidths = cfHeaders.map(() => contentW / cfHeaders.length);
+
+            const yr0 = model.years.find(yr => yr.isYear0);
+            const cfRows = [
+                { cells: ['CF Before Financing', formatThousands(yr0.cfBeforeFinancing), ...opYears.map(yr => formatThousands(yr.cfBeforeFinancing))], isHeader: true },
+                { cells: ['(-) Loan Fee', formatThousands(yr0.loanFeeExpense), ...opYears.map(() => '-')] },
+                { cells: ['(-) Interest', '-', ...opYears.map(yr => yr.interestExpense ? formatThousands(yr.interestExpense) : '-')] },
+                { cells: ['(-) Debt Repayment', '-', ...opYears.map(yr => yr.debtRepayment ? formatThousands(yr.debtRepayment) : '-')] },
+                { cells: ['Free Cash Flow', formatThousands(yr0.equityCF), ...opYears.map(yr => formatThousands(yr.equityCF))], isHeader: true },
+                { cells: ['Discounted CF', formatThousands(yr0.dcf), ...opYears.map(yr => formatThousands(yr.dcf))] },
+                { cells: ['DCR', '-', ...opYears.map(yr => formatDCR(yr.dcr))] }
+            ];
+            drawTable(cfHeaders, cfRows, y, cfWidths);
+
+            // Footer on all pages
+            const totalPages = pdf.internal.getNumberOfPages();
+            for (let p = 1; p <= totalPages; p++) {
+                pdf.setPage(p);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text(`Page ${p} of ${totalPages}`, pageW - margin - 15, pageH - 8);
+                pdf.text('Generated by Financial Model', margin, pageH - 8);
+            }
+
+            pdf.save(`${(state.projectName || 'Financial_Model').replace(/\s+/g, '_')}_Report.pdf`);
+        }
+
+
+        // ========== CHART RENDERING ==========
+        function renderCharts(model) {
+            if (!model) return;
+
+            const opYears = model.years.filter(y => !y.isYear0);
+            const labels = opYears.map(y => y.year.toString());
+
+            const chartConfig = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#e4e4e7',
+                        bodyColor: '#a1a1aa',
+                        borderColor: '#3a3a45',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#2a2a35' },
+                        ticks: { color: '#71717a', font: { size: 9 } }
+                    },
+                    y: {
+                        grid: { color: '#2a2a35' },
+                        ticks: {
+                            color: '#71717a',
+                            font: { size: 9 },
+                            callback: function (value) {
+                                if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+                                if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(0) + 'K';
+                                return value;
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Destroy existing charts
+            Object.values(charts).forEach(c => c && c.destroy());
+            charts = {};
+
+            setTimeout(() => {
+                // EBITDA Chart
+                const ebitdaCtx = document.getElementById('chart-ebitda');
+                if (ebitdaCtx) {
+                    charts.ebitda = new Chart(ebitdaCtx, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data: opYears.map(y => y.ebitda),
+                                backgroundColor: '#22c55e',
+                                borderRadius: 2
+                            }]
+                        },
+                        options: chartConfig
+                    });
+                }
+
+                // Revenue Chart
+                const revenueCtx = document.getElementById('chart-revenue');
+                if (revenueCtx) {
+                    charts.revenue = new Chart(revenueCtx, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data: opYears.map(y => y.revenue),
+                                backgroundColor: opYears.map(y => y.isLastYear ? '#d4a857' : '#3b82f6'),
+                                borderRadius: 2
+                            }]
+                        },
+                        options: chartConfig
+                    });
+                }
+
+                // Cash Flow Chart
+                const cfCtx = document.getElementById('chart-cf');
+                if (cfCtx) {
+                    charts.cf = new Chart(cfCtx, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data: opYears.map(y => y.fcf),
+                                borderColor: '#06b6d4',
+                                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#06b6d4'
+                            }]
+                        },
+                        options: chartConfig
+                    });
+                }
+
+                // DCR Chart
+                const dcrCtx = document.getElementById('chart-dcr');
+                if (dcrCtx) {
+                    const dcrData = opYears.map(y => y.dcr);
+                    charts.dcr = new Chart(dcrCtx, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data: dcrData,
+                                borderColor: '#a855f7',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#a855f7',
+                                spanGaps: true
+                            }]
+                        },
+                        options: {
+                            ...chartConfig,
+                            scales: {
+                                ...chartConfig.scales,
+                                y: {
+                                    ...chartConfig.scales.y,
+                                    ticks: {
+                                        color: '#71717a',
+                                        font: { size: 9 },
+                                        callback: v => v ? v.toFixed(1) + 'x' : ''
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+        }
 
         // ========== RENDER ==========
         function render() {
             const model = calculateModel();
-            const maxRevenue = Math.max(...model.years.map(y => y.revenue));
-            const maxCF = Math.max(...model.years.map(y => Math.max(y.projectCF, y.debtService || 0, y.tax || 0)));
+            const hasErrors = state.validationErrors.length > 0;
 
             document.getElementById('app').innerHTML = `
-                <!-- Left Sidebar -->
                 <div class="sidebar">
                     <div class="sidebar-header">
                         <h1>Financial Model</h1>
                         <div class="subtitle">Investment Banking Dashboard</div>
                     </div>
                     
+                    ${renderAccordion('project', 'Project Info', `
+                        <div class="input-group">
+                            <div class="input-label"><span>Project Name</span></div>
+                            <input type="text" value="${state.projectName}" onchange="updateState('projectName', this.value)" style="width:100%">
+                        </div>
+                    `)}
+                    
                     ${renderAccordion('timing', 'Timing', `
                         ${renderSlider('startYear', 'Start Year', state.startYear, 2020, 2035, 1, '')}
-                        ${renderSlider('duration', 'Duration (Years)', state.duration, 1, 30, 1, '')}
+                        ${renderSlider('duration', 'Project Duration', state.duration, 1, 30, 1, ' yrs')}
+                        ${renderSlider('loanDuration', 'Loan Duration', state.loanDuration, 1, 30, 1, ' yrs')}
+                        ${renderSlider('depreciationDuration', 'Depreciation Period', state.depreciationDuration, 1, 30, 1, ' yrs')}
+                        ${state.validationErrors.length > 0 ? `<div class="validation-error">${state.validationErrors.join('<br>')}</div>` : ''}
                     `)}
                     
                     ${renderAccordion('operations', 'Operations', `
                         ${renderSlider('capex', 'CAPEX', state.capex, 100000, 100000000, 100000, '', '$')}
                         ${renderSlider('initialRevenue', 'Initial Revenue', state.initialRevenue, 100000, 50000000, 100000, '', '$')}
                         ${renderSlider('initialOpex', 'Initial OPEX', state.initialOpex, 50000, 30000000, 50000, '', '$')}
+                        ${renderSlider('terminationValue', 'Termination Value', state.terminationValue, 0, 50000000, 100000, '', '$')}
                     `)}
                     
                     ${renderAccordion('growth', 'Growth Rates', `
@@ -750,7 +1202,7 @@
                         ${renderSlider('debtShare', 'Debt / Total', state.debtShare, 0, 95, 1, '%')}
                         ${renderSlider('interestRate', 'Interest Rate', state.interestRate, 0, 20, 0.25, '%')}
                         ${renderSlider('loanFee', 'Arrangement Fee', state.loanFee, 0, 5, 0.25, '%')}
-                        ${renderSlider('wacc', 'WACC', state.wacc, 1, 25, 0.5, '%')}
+                        ${renderSlider('wacc', 'Discount Rate (WACC)', state.wacc, 1, 25, 0.5, '%')}
                         <div class="input-group">
                             <div class="input-label"><span>Amortization</span></div>
                             <select onchange="updateState('amortType', this.value)">
@@ -765,52 +1217,20 @@
                     `)}
                 </div>
                 
-                <!-- Main Content -->
                 <div class="main">
-                    <!-- KPI Strip -->
-                    <div class="kpi-strip">
-                        <div class="kpi-item">
-                            <div class="kpi-label">Project IRR</div>
-                            <div class="kpi-value ${model.pirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.pirr)}</div>
-                        </div>
-                        <div class="kpi-item">
-                            <div class="kpi-label">Equity IRR</div>
-                            <div class="kpi-value ${model.eirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.eirr)}</div>
-                        </div>
-                        <div class="kpi-item">
-                            <div class="kpi-label">Equity Multiple</div>
-                            <div class="kpi-value ${model.roi >= 1 ? 'positive' : 'negative'}">${model.roi.toFixed(2)}x</div>
-                        </div>
-                        <div class="kpi-item">
-                            <div class="kpi-label">EBITDA Margin</div>
-                            <div class="kpi-value gold">${formatPercent(model.avgEbitdaMargin)}</div>
-                        </div>
-                        <div class="kpi-item">
-                            <div class="kpi-label">EBITDA / CAPEX</div>
-                            <div class="kpi-value gold">${formatPercent(model.ebitdaCapexRatio)}</div>
-                        </div>
-                        <div class="kpi-item">
-                            <div class="kpi-label">NPV @ ${state.wacc}%</div>
-                            <div class="kpi-value ${model.npv >= 0 ? 'positive' : 'negative'}">${formatCurrency(model.npv)}</div>
-                        </div>
-                    </div>
+                    ${model ? renderKPIStrip(model) : '<div class="kpi-strip" style="padding:20px;color:var(--accent-red)">Fix validation errors</div>'}
                     
-                    <!-- Tabs -->
                     <div class="tabs">
                         <button class="tab ${state.activeTab === 'dashboard' ? 'active' : ''}" onclick="updateState('activeTab', 'dashboard')">Dashboard</button>
                         <button class="tab ${state.activeTab === 'pnl' ? 'active' : ''}" onclick="updateState('activeTab', 'pnl')">P&L Statement</button>
                         <button class="tab ${state.activeTab === 'cashflow' ? 'active' : ''}" onclick="updateState('activeTab', 'cashflow')">Cash Flow</button>
                     </div>
                     
-                    <!-- Content -->
-                    <div class="content">
-                        ${state.activeTab === 'dashboard' ? renderDashboard(model, maxRevenue, maxCF) : ''}
-                        ${state.activeTab === 'pnl' ? renderPnL(model) : ''}
-                        ${state.activeTab === 'cashflow' ? renderCashFlow(model) : ''}
+                    <div class="content" id="report-area">
+                        ${model ? renderContent(model) : '<div style="padding:40px;text-align:center;color:var(--text-muted)">Fix validation errors</div>'}
                     </div>
                 </div>
                 
-                <!-- Right Panel -->
                 <div class="right-panel">
                     <div class="panel-header">Sensitivity Analysis</div>
                     <div class="sensitivity-card">
@@ -820,7 +1240,6 @@
                                 <span class="sens-value ${state.capexAdj >= 0 ? 'positive' : 'negative'}">${state.capexAdj >= 0 ? '+' : ''}${state.capexAdj}%</span>
                             </div>
                             <input type="range" min="-50" max="50" step="5" value="${state.capexAdj}" oninput="updateState('capexAdj', parseInt(this.value))" style="width:100%">
-                            <div class="sens-marks"><span>-50%</span><span>0</span><span>+50%</span></div>
                         </div>
                         <div class="sens-group">
                             <div class="sens-label">
@@ -828,44 +1247,68 @@
                                 <span class="sens-value ${state.revenueAdj >= 0 ? 'positive' : 'negative'}">${state.revenueAdj >= 0 ? '+' : ''}${state.revenueAdj}%</span>
                             </div>
                             <input type="range" min="-50" max="50" step="5" value="${state.revenueAdj}" oninput="updateState('revenueAdj', parseInt(this.value))" style="width:100%">
-                            <div class="sens-marks"><span>-50%</span><span>0</span><span>+50%</span></div>
                         </div>
+                        ${model ? `
                         <div class="irr-display">
-                            <div class="irr-title">Live Returns</div>
+                            <div class="irr-title">Key Metrics</div>
                             <div class="irr-grid">
-                                <div class="irr-box">
-                                    <div class="irr-box-label">Project IRR</div>
-                                    <div class="irr-box-value ${model.pirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.pirr)}</div>
-                                </div>
                                 <div class="irr-box">
                                     <div class="irr-box-label">Equity IRR</div>
                                     <div class="irr-box-value ${model.eirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.eirr)}</div>
                                 </div>
+                                <div class="irr-box">
+                                    <div class="irr-box-label">Min DCR</div>
+                                    <div class="irr-box-value ${model.minDCR && model.minDCR >= 1.2 ? 'positive' : 'warning'}">${formatDCR(model.minDCR)}</div>
+                                </div>
                             </div>
                         </div>
+                        ` : ''}
                     </div>
+                    <button class="export-btn" onclick="exportToPDF()" ${hasErrors ? 'disabled' : ''}>📄 Export to PDF</button>
+                </div>
+            `;
+
+            if (model && state.activeTab === 'dashboard') {
+                renderCharts(model);
+            }
+        }
+
+        function renderKPIStrip(model) {
+            return `
+                <div class="kpi-strip">
+                    <div class="kpi-item"><div class="kpi-label">Project IRR</div><div class="kpi-value ${model.pirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.pirr)}</div></div>
+                    <div class="kpi-item"><div class="kpi-label">Equity IRR</div><div class="kpi-value ${model.eirr >= 0 ? 'positive' : 'negative'}">${formatPercent(model.eirr)}</div></div>
+                    <div class="kpi-item"><div class="kpi-label">Equity Multiple</div><div class="kpi-value ${model.roi >= 1 ? 'positive' : 'negative'}">${model.roi.toFixed(2)}x</div></div>
+                    <div class="kpi-item"><div class="kpi-label">NPV @ ${state.wacc}%</div><div class="kpi-value ${model.npv >= 0 ? 'positive' : 'negative'}">${formatCurrency(model.npv)}</div></div>
+                    <div class="kpi-item"><div class="kpi-label">Min DCR</div><div class="kpi-value ${model.minDCR && model.minDCR >= 1.2 ? 'positive' : 'warning'}">${formatDCR(model.minDCR)}</div></div>
+                    <div class="kpi-item"><div class="kpi-label">Avg DCR</div><div class="kpi-value ${model.avgDCR && model.avgDCR >= 1.5 ? 'positive' : 'gold'}">${formatDCR(model.avgDCR)}</div></div>
                 </div>
             `;
         }
 
+        function renderContent(model) {
+            if (state.activeTab === 'dashboard') return renderDashboard(model);
+            if (state.activeTab === 'pnl') return renderPnL(model);
+            if (state.activeTab === 'cashflow') return renderCashFlow(model);
+            return '';
+        }
+
         function renderAccordion(id, title, content) {
-            const isOpen = state.accordions[id];
             return `
                 <div class="accordion">
-                    <button class="accordion-header" onclick="toggleAccordion('${id}')">${title} <span style="font-size:8px">${isOpen ? '▲' : '▼'}</span></button>
-                    <div class="accordion-content ${isOpen ? 'open' : ''}">${content}</div>
+                    <button class="accordion-header" onclick="toggleAccordion('${id}')">${title} <span style="font-size:8px">${state.accordions[id] ? '▲' : '▼'}</span></button>
+                    <div class="accordion-content ${state.accordions[id] ? 'open' : ''}">${content}</div>
                 </div>
             `;
         }
 
         function renderSlider(key, label, value, min, max, step, unit, prefix = '') {
-            const displayValue = prefix ? formatCurrency(value).replace('$', prefix) : `${formatNumber(value)}${unit}`;
+            // Don't use toLocaleString for years (avoid 2,024 format)
+            const isYear = key.toLowerCase().includes('year');
+            const displayValue = prefix ? formatCurrency(value).replace('$', prefix) : `${isYear ? value : value.toLocaleString()}${unit}`;
             return `
                 <div class="input-group">
-                    <div class="input-label">
-                        <span>${label}</span>
-                        <span class="input-value">${displayValue}</span>
-                    </div>
+                    <div class="input-label"><span>${label}</span><span class="input-value">${displayValue}</span></div>
                     <div class="input-row">
                         <input type="range" min="${min}" max="${max}" step="${step}" value="${value}" oninput="updateState('${key}', parseFloat(this.value))">
                         <input type="number" value="${value}" step="${step}" onchange="updateState('${key}', parseFloat(this.value) || ${min})">
@@ -874,47 +1317,48 @@
             `;
         }
 
-        function renderDashboard(model, maxRevenue, maxCF) {
+        function renderDashboard(model) {
+            const opYears = model.years.filter(y => !y.isYear0);
+            const totalRevenue = opYears.reduce((a, y) => a + y.revenue, 0);
+            const totalEBITDA = opYears.reduce((a, y) => a + y.ebitda, 0);
+            const totalFCF = opYears.reduce((a, y) => a + y.fcf, 0);
+
             return `
                 <div class="chart-grid">
                     <div class="chart-card">
-                        <div class="chart-header"><div class="chart-title">Revenue & EBITDA</div></div>
-                        <div class="chart-body">
-                            <div class="chart-area">
-                                ${model.years.map(y => `
-                                    <div class="bar-group">
-                                        <div class="bar revenue" style="height:${Math.max(2, (y.revenue / maxRevenue) * 160)}px" title="Revenue: ${formatCurrency(y.revenue)}"></div>
-                                        <div class="bar-label">${String(y.year).slice(-2)}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div class="chart-legend">
-                                <div class="legend-item"><div class="legend-dot" style="background:var(--accent-blue)"></div>Revenue</div>
-                                <div class="legend-item"><div class="legend-dot" style="background:var(--accent-green)"></div>EBITDA</div>
-                            </div>
+                        <div class="chart-header">
+                            <div class="chart-title">EBITDA</div>
+                            <div class="chart-value positive">${formatCurrency(totalEBITDA)}</div>
                         </div>
+                        <div class="chart-body"><canvas id="chart-ebitda"></canvas></div>
                     </div>
                     <div class="chart-card">
-                        <div class="chart-header"><div class="chart-title">Project Cash Flow</div></div>
-                        <div class="chart-body">
-                            <div class="chart-area">
-                                ${model.years.map(y => `
-                                    <div class="bar-group">
-                                        <div class="bar projectcf" style="height:${Math.max(2, (y.projectCF / maxCF) * 160)}px" title="CF: ${formatCurrency(y.projectCF)}"></div>
-                                        <div class="bar-label">${String(y.year).slice(-2)}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div class="chart-legend">
-                                <div class="legend-item"><div class="legend-dot" style="background:var(--accent-green)"></div>Project CF</div>
-                            </div>
+                        <div class="chart-header">
+                            <div class="chart-title">Revenue (incl. Termination Value)</div>
+                            <div class="chart-value gold">${formatCurrency(totalRevenue)}</div>
                         </div>
+                        <div class="chart-body"><canvas id="chart-revenue"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">Free Cash Flow (Equity)</div>
+                            <div class="chart-value" style="color:var(--accent-cyan)">${formatCurrency(totalFCF)}</div>
+                        </div>
+                        <div class="chart-body"><canvas id="chart-cf"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">Debt Coverage Ratio (DCR)</div>
+                            <div class="chart-value" style="color:var(--accent-purple)">Min: ${formatDCR(model.minDCR)}</div>
+                        </div>
+                        <div class="chart-body"><canvas id="chart-dcr"></canvas></div>
                     </div>
                 </div>
             `;
         }
 
         function renderPnL(model) {
+            const opYears = model.years.filter(y => !y.isYear0);
             const rows = [
                 { key: 'revenue', label: 'Revenue', isHeader: true },
                 { key: 'opex', label: 'Operating Expenses', isSub: true },
@@ -929,21 +1373,13 @@
             return `
                 <div class="table-container">
                     <table>
-                        <thead><tr><th>P&L ($000s)</th>${model.years.map(y => `<th>${y.year}</th>`).join('')}</tr></thead>
+                        <thead><tr><th>${state.projectName} - P&L ($000s)</th>${opYears.map(y => `<th>${y.year}${y.isLastYear ? '*' : ''}</th>`).join('')}</tr></thead>
                         <tbody>
-                            ${rows.map(row => `
-                                <tr class="${row.isHeader ? 'row-header' : row.isTotal ? 'row-total' : row.isSub ? 'row-sub' : ''}">
-                                    <td>${row.isSub ? '(-) ' : ''}${row.label}</td>
-                                    ${model.years.map(y => {
-                const val = y[row.key];
-                const display = (Math.abs(val) / 1000).toFixed(0);
-                return `<td class="${val < 0 ? 'negative' : ''}">${display}</td>`;
-            }).join('')}
-                                </tr>
-                            `).join('')}
+                            ${rows.map(row => `<tr class="${row.isHeader ? 'row-header' : row.isTotal ? 'row-total' : 'row-sub'}"><td>${row.isSub ? '(-) ' : ''}${row.label}</td>${opYears.map(y => `<td>${formatThousands(y[row.key])}</td>`).join('')}</tr>`).join('')}
                         </tbody>
                     </table>
                 </div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:8px;">* Final year includes Termination Value of ${formatCurrency(state.terminationValue)}</div>
             `;
         }
 
@@ -951,32 +1387,33 @@
             return `
                 <div class="table-container">
                     <table>
-                        <thead><tr><th>Cash Flow ($000s)</th><th>Yr 0</th>${model.years.map(y => `<th>${y.year}</th>`).join('')}</tr></thead>
+                        <thead><tr><th>${state.projectName} - Cash Flow ($000s)</th>${model.years.map(y => `<th>${y.isYear0 ? 'Yr 0' : y.year}</th>`).join('')}</tr></thead>
                         <tbody>
-                            <tr class="row-header">
-                                <td>Project Cash Flow</td>
-                                <td class="negative">(${(model.capex / 1000).toFixed(0)})</td>
-                                ${model.years.map(y => `<td class="positive">${(y.projectCF / 1000).toFixed(0)}</td>`).join('')}
-                            </tr>
-                            <tr class="row-sub">
-                                <td>(-) Debt Service</td>
-                                <td>-</td>
-                                ${model.years.map(y => `<td>${(y.debtService / 1000).toFixed(0)}</td>`).join('')}
-                            </tr>
-                            <tr class="row-total">
-                                <td>Equity Cash Flow</td>
-                                <td class="negative">(${(model.equityInjection / 1000).toFixed(0)})</td>
-                                ${model.years.map(y => `<td class="${y.equityCF >= 0 ? 'positive' : 'negative'}">${y.equityCF >= 0 ? '' : '('}${(Math.abs(y.equityCF) / 1000).toFixed(0)}${y.equityCF >= 0 ? '' : ')'}</td>`).join('')}
-                            </tr>
+                            <tr class="row-header"><td>Cash Flow Before Financing</td>${model.years.map(y => `<td class="${y.cfBeforeFinancing < 0 ? 'negative' : 'positive'}">${formatThousands(y.cfBeforeFinancing)}</td>`).join('')}</tr>
+                            <tr class="row-section"><td>Financing Activities</td>${model.years.map(() => '<td></td>').join('')}</tr>
+                            <tr class="row-sub"><td>(-) Loan/Arrangement Fee</td>${model.years.map(y => `<td>${y.loanFeeExpense ? formatThousands(y.loanFeeExpense) : '-'}</td>`).join('')}</tr>
+                            <tr class="row-sub"><td>(-) Interest Expense</td>${model.years.map(y => `<td>${y.interestExpense ? formatThousands(y.interestExpense) : '-'}</td>`).join('')}</tr>
+                            <tr class="row-sub"><td>(-) Debt Repayment</td>${model.years.map(y => `<td>${y.debtRepayment ? formatThousands(y.debtRepayment) : '-'}</td>`).join('')}</tr>
+                            <tr class="row-total"><td>Free Cash Flow (Equity)</td>${model.years.map(y => `<td class="${y.equityCF >= 0 ? 'positive' : 'negative'}">${formatThousands(y.equityCF)}</td>`).join('')}</tr>
+                            <tr class="row-dcf"><td>Discounted CF @ ${state.wacc}%</td>${model.years.map(y => `<td>${formatThousands(y.dcf)}</td>`).join('')}</tr>
+                            <tr class="row-dcr"><td>DCR (CFADS / Debt Service)</td>${model.years.map(y => `<td>${formatDCR(y.dcr)}</td>`).join('')}</tr>
                         </tbody>
                     </table>
+                </div>
+                <div style="margin-top:12px;padding:12px;background:var(--bg-secondary);border:1px solid var(--border);font-size:10px;color:var(--text-muted);">
+                    <strong style="color:var(--accent-gold)">NPV:</strong> ${formatCurrency(model.npv)} |
+                    <strong style="color:var(--accent-purple)">Min DCR:</strong> ${formatDCR(model.minDCR)} |
+                    <strong style="color:var(--accent-purple)">Avg DCR:</strong> ${formatDCR(model.avgDCR)}
                 </div>
             `;
         }
 
-        // ========== STATE MANAGEMENT ==========
         function updateState(key, value) {
             state[key] = value;
+            if (key === 'duration') {
+                if (state.loanDuration > value) state.loanDuration = value;
+                if (state.depreciationDuration > value) state.depreciationDuration = value;
+            }
             render();
         }
 
@@ -985,7 +1422,6 @@
             render();
         }
 
-        // Initial render
         render();
     </script>
 </body>
